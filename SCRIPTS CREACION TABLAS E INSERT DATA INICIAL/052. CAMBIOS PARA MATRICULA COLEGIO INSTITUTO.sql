@@ -1,14 +1,14 @@
+--INSERT PARA sede
+INSERT INTO public.sede (codigo_sede, descripcion_sede, direccion, telefono, estado_sede, tipo_institucion) VALUES ('SEDE002', 'Sede Central', 'Av. Principal 500, Ciudad', '123-456-800', 'Activo', 'I');
+
 --INSERT PARA users
 INSERT INTO public.alumno (codigo_alumno, nombre, apellido_paterno, apellido_materno, dni, correo, fecha_nacimiento, telefono,
- direccion, foto_perfil, genero, tipo_alumno, observaciones, apoderado, tipo_institucion) 
+ direccion, foto_perfil, genero, tipo_alumno, observaciones, apoderado, tipo_institucion. codigo_sede) 
  VALUES ('A013', 'admin', 'instituto', '', '89595965', 'admininsti@gmail.com', '1999-09-24',
-  '966214487', 'Calle Falsa 500', '/imagenes/maria.png', 'M', 'Regular', 'Ninguna', NULL, 'I');
+  '966214487', 'Calle Falsa 500', '/imagenes/maria.png', 'M', 'Regular', 'Ninguna', NULL, 'I', 'SEDE002');
 
 INSERT INTO public.users (email, password, name, phone, 
 	role, dni_usuario,codigo_sede) VALUES ('admininsti@gmail.com', 'admin123', 'administrador Instituto', '123456789', 'Admin', '89595965', 'SEDE002');
-
---INSERT PARA sede
-INSERT INTO public.sede (codigo_sede, descripcion_sede, direccion, telefono, estado_sede, tipo_institucion) VALUES ('SEDE002', 'Sede Central', 'Av. Principal 500, Ciudad', '123-456-800', 'Activo', 'I');
 
 --se modifico metodo en caso de que se quiera registrar matricula para alumno de instituto
 
