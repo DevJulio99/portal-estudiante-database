@@ -30,7 +30,7 @@ BEGIN
     IF NOT puede_matricularse THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'El alumno ya tiene una matrÃƒÂ­cula activa para este perÃƒÂ­odo acadÃƒÂ©mico',
+            'message', 'El alumno ya tiene una matrícula activa para este período académico',
             'id_matricula', NULL
         );
     END IF;
@@ -39,16 +39,16 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM alumno WHERE id_alumno = p_id_alumno AND activo = true) THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'El alumno no existe o estÃƒÂ¡ inactivo',
+            'message', 'El alumno no existe o está inactivo',
             'id_matricula', NULL
         );
     END IF;
     
-    -- Verificar que el perÃƒÂ­odo existe
+    -- Verificar que el período existe
     IF NOT EXISTS (SELECT 1 FROM periodoacademico WHERE id_periodo = p_id_periodo) THEN
         RETURN json_build_object(
             'success', false,
-            'message', 'El perÃƒÂ­odo acadÃƒÂ©mico no existe',
+            'message', 'El período académico no existe',
             'id_matricula', NULL
         );
     END IF;
@@ -89,7 +89,7 @@ BEGIN
         END IF;
     END IF;
     
-    -- Insertar la matrÃƒÂ­cula
+    -- Insertar la matrícula
     INSERT INTO matricula (
         id_alumno,
         id_periodo,
@@ -121,7 +121,7 @@ BEGIN
     -- Retornar resultado exitoso
     RETURN json_build_object(
         'success', true,
-        'message', 'MatrÃƒÂ­cula realizada exitosamente',
+        'message', 'Matrícula realizada exitosamente',
         'id_seccion', v_id_seccion,
         'id_matricula', nuevo_id_matricula,
         'fecha_matricula', CURRENT_TIMESTAMP
@@ -133,7 +133,7 @@ EXCEPTION
         GET STACKED DIAGNOSTICS mensaje_error = MESSAGE_TEXT;
         RETURN json_build_object(
             'success', false,
-            'message', 'Error al realizar la matrÃƒÂ­cula: ' || mensaje_error,
+            'message', 'Error al realizar la matrícula: ' || mensaje_error,
             'id_matricula', NULL
         );
 END;
