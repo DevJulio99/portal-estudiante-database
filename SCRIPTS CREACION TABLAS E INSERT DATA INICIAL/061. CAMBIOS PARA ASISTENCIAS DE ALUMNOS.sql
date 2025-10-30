@@ -27,7 +27,7 @@ INSERT INTO public.grado_curso ("ID_GRADO", id_curso, es_obligatorio, tipo_insti
 (12, 17, true, 'I', 1, 4), 
 (12, 18, true, 'I', 2, 3),
 (12, 19, false, 'I', 3, 2),
-(12, 20, true, 'I', 4, 4),
+(12, 20, true, 'I', 4, 4);
 
 --modificacion para funcion de matricula colegio
 
@@ -146,12 +146,12 @@ END;
 $$;
 
 --reseteando asistencias
-delete from asistencias
+delete from asistencias;
 
-ALTER TABLE public.asistencia
+ALTER TABLE public.asistencias
 ADD COLUMN id_matricula_curso INT NOT NULL;
 
-ALTER TABLE public.asistencia
+ALTER TABLE public.asistencias
 ADD CONSTRAINT fk_asistencia_matricula_curso
 FOREIGN KEY (id_matricula_curso)
 REFERENCES public.matricula_curso (id_matricula_curso)
