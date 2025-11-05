@@ -708,3 +708,211 @@ BEGIN
     END;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP PROCEDURE IF EXISTS public.insertar_usuario_alumno(character varying, character varying, character varying, character varying, character varying, character varying, character varying, timestamp without time zone, character varying, character varying, character varying, character varying, character varying, character varying, character varying, integer, boolean);
+
+CREATE OR REPLACE PROCEDURE public.insertar_usuario_alumno(
+    IN correo_usuario character varying,
+    IN nombre_usuario character varying,
+    IN apellido_p_usuario character varying,
+    IN apellido_m_usuario character varying,
+    IN telefono_usuario character varying,
+    IN dni_usuario character varying,
+    IN fn_usuario timestamp without time zone,
+    IN direccion_usuario character varying,
+    IN foto_perfil_usuario character varying,
+    IN genero_usuario character varying,
+    IN t_a_usuario character varying,
+    IN observacion_alumno character varying,
+    IN apoderado_alumno character varying,
+    IN t_i_alumno character varying,
+    IN grado_alumno integer,
+    IN habilitado_prueba_alumno boolean,
+    OUT resultado_json json
+)
+LANGUAGE 'plpgsql'
+AS $BODY$
+DECLARE
+    v_existente integer;
+    v_tenant_id VARCHAR;
+BEGIN
+    -- Obtener el tenant de la sesión actual
+    v_tenant_id := current_setting('app.current_tenant', true);
+
+    -- Validar que exista tenant
+    IF v_tenant_id IS NULL THEN
+        resultado_json := json_build_object(
+            'success', FALSE,
+            'message', 'No se puede realizar la operación: la sede no es válida.'
+        );
+        RETURN;
+    END IF;
+    
+    -- Verificar si el alumno ya existe por DNI
+    SELECT COUNT(*) INTO v_existente
+    FROM alumno
+    WHERE dni = dni_usuario
+      AND codigo_sede = v_tenant_id;
+
+    IF v_existente > 0 THEN
+        resultado_json := json_build_object(
+            'success', false,
+            'message', 'El alumno ya se encuentra registrado',
+            'dni', dni_usuario
+        );
+        RETURN;
+    END IF;
+
+    -- Insertar alumno y usuario
+    BEGIN
+        INSERT INTO alumno (
+            nombre, apellido_paterno, apellido_materno,
+            dni, correo, fecha_nacimiento, telefono, direccion, foto_perfil,
+            genero, tipo_alumno, observaciones, apoderado, tipo_institucion,
+            codigo_sede, id_grado, habilitado_prueba, activo
+        )
+        VALUES (
+            nombre_usuario, apellido_p_usuario, apellido_m_usuario,
+            dni_usuario, correo_usuario, fn_usuario, telefono_usuario,
+            direccion_usuario, foto_perfil_usuario, genero_usuario,
+            t_a_usuario, observacion_alumno, apoderado_alumno,
+            t_i_alumno, v_tenant_id, grado_alumno, habilitado_prueba_alumno, true
+        );
+
+        INSERT INTO users (
+            email, password, name, phone, role, dni_usuario, codigo_sede, activo
+        )
+        VALUES (
+            correo_usuario, dni_usuario, nombre_usuario,
+            telefono_usuario, 'user', dni_usuario, v_tenant_id, true
+        );
+
+        resultado_json := json_build_object(
+            'success', true,
+            'message', 'Alumno registrado correctamente',
+            'dni', dni_usuario,
+            'correo', correo_usuario
+        );
+
+    EXCEPTION WHEN OTHERS THEN
+        resultado_json := json_build_object(
+            'success', false,
+            'message', 'Error al registrar alumno: ' || SQLERRM,
+            'dni', dni_usuario,
+            'correo', correo_usuario
+        );
+        RETURN;
+    END;
+END;
+$BODY$;
+
+DROP PROCEDURE IF EXISTS public.actualizar_usuario_alumno(character varying, character varying, character varying, character varying, character varying, character varying, character varying, timestamp without time zone, character varying, character varying, character varying, character varying, character varying, character varying, character varying, integer, boolean, character varying);
+DROP PROCEDURE IF EXISTS public.actualizar_usuario_alumno(character varying, character varying, character varying, character varying, character varying, character varying, character varying, timestamp without time zone, character varying, character varying, character varying, character varying, character varying, character varying, character varying, integer, boolean);
+
+CREATE OR REPLACE PROCEDURE public.actualizar_usuario_alumno(
+    IN correo_usuario character varying,
+    IN "contraseña_usuario" character varying,
+    IN nombre_usuario character varying,
+    IN apellido_p_usuario character varying,
+    IN apellido_m_usuario character varying,
+    IN telefono_usuario character varying,
+    IN dni_usuario_alumno character varying,
+    IN fn_usuario timestamp without time zone,
+    IN direccion_usuario character varying,
+    IN foto_perfil_usuario character varying,
+    IN genero_usuario character varying,
+    IN t_a_usuario character varying,
+    IN observacion_alumno character varying,
+    IN apoderado_alumno character varying,
+    IN t_i_alumno character varying,
+    IN grado_alumno integer,
+    IN habilitado_prueba_alumno boolean,
+    OUT resultado_json json
+)
+LANGUAGE 'plpgsql'
+AS $BODY$
+DECLARE
+    v_existente integer;
+    v_tenant_id varchar;
+BEGIN
+    -- Obtener tenant de la sesión
+    v_tenant_id := current_setting('app.current_tenant', true);
+
+    IF v_tenant_id IS NULL THEN
+        resultado_json := json_build_object(
+            'success', false,
+            'message', 'No se puede realizar la operación: la sede no es válida.'
+        );
+        RETURN;
+    END IF;
+
+    -- Verificar que el alumno exista en la sede actual
+    SELECT COUNT(*) INTO v_existente
+    FROM alumno
+    WHERE dni = dni_usuario_alumno
+      AND codigo_sede = v_tenant_id;
+
+    IF v_existente = 0 THEN
+        resultado_json := json_build_object(
+            'success', false,
+            'message', 'El alumno no existe en la sede actual'
+        );
+        RETURN;
+    END IF;
+
+    -- Bloque seguro para actualización
+    BEGIN
+        -- Actualizar tabla users (sin modificar DNI)
+        IF contraseña_usuario IS NOT NULL AND contraseña_usuario <> '' THEN
+            UPDATE users
+            SET email = correo_usuario,
+                password = contraseña_usuario,
+                name = nombre_usuario,
+                phone = telefono_usuario
+            WHERE dni_usuario = dni_usuario_alumno
+              AND codigo_sede = v_tenant_id;
+        ELSE
+            UPDATE users
+            SET email = correo_usuario,
+                name = nombre_usuario,
+                phone = telefono_usuario
+            WHERE dni_usuario = dni_usuario_alumno
+              AND codigo_sede = v_tenant_id;
+        END IF;
+
+        -- Actualizar tabla alumno (sin modificar DNI)
+        UPDATE alumno
+        SET nombre = nombre_usuario,
+            apellido_paterno = apellido_p_usuario,
+            apellido_materno = apellido_m_usuario,
+            correo = correo_usuario,
+            fecha_nacimiento = fn_usuario,
+            telefono = telefono_usuario,
+            direccion = direccion_usuario,
+            foto_perfil = foto_perfil_usuario,
+            genero = genero_usuario,
+            tipo_alumno = t_a_usuario,
+            observaciones = observacion_alumno,
+            apoderado = apoderado_alumno,
+            tipo_institucion = t_i_alumno,
+            id_grado = grado_alumno,
+            habilitado_prueba = habilitado_prueba_alumno
+        WHERE dni = dni_usuario_alumno
+          AND codigo_sede = v_tenant_id;
+
+        -- Retornar éxito
+        resultado_json := json_build_object(
+            'success', true,
+            'message', 'Alumno actualizado correctamente'
+        );
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'Error al actualizar alumno: %', SQLERRM;
+        resultado_json := json_build_object(
+            'success', false,
+            'message', 'Error al actualizar alumno: ' || SQLERRM
+        );
+        RETURN;
+    END;
+END;
+$BODY$;
