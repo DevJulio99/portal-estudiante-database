@@ -623,3 +623,87 @@ EXCEPTION
         );
 END;
 $BODY$;
+
+CREATE OR REPLACE FUNCTION insertar_documento(
+    p_id_categoria_documento INT,
+    p_titulo VARCHAR,
+    p_descripcion TEXT,
+    p_documento TEXT,
+    p_interno BOOLEAN,
+    p_documento_descarga TEXT
+)
+RETURNS JSON
+AS $$
+DECLARE
+    v_tenant_id VARCHAR;
+BEGIN
+    --Obtener el tenant de la sesión actual
+    v_tenant_id := current_setting('app.current_tenant', true);
+
+    --Validar que exista tenant
+    IF v_tenant_id IS NULL THEN
+        RETURN json_build_object(
+            'success', FALSE,
+            'message', 'No se puede realizar la operación: la sede no es válida.'
+        );
+    END IF;
+
+    BEGIN
+        INSERT INTO documentos (
+            "ID_CATEGORIA_DOCUMENTO",
+            "STATUS",
+            "TITULO",
+            "DESCRIPCION",
+            "ENLACE",
+            "SECUENCIA",
+            "DATE_CREATED",
+            "TIPO_DOCUMENTO",
+            "MAS_BUSCADOS",
+            "SECUENCIA_MAS_BUSCADA",
+            "DOCUMENTO_VER",
+            "INTERNO",
+            "FECHA_ACTUALIZACION",
+            "FECHA_INICIO",
+            "FECHA_FIN",
+            "DOCUMENTO_DESCARGA",
+            "NOMBRE_DOCUMENTO",
+            "TYPE",
+            "codigo_sede"
+        )
+        VALUES (
+            p_id_categoria_documento,
+            'published',
+            p_titulo,
+            p_descripcion,
+            NULL,                    -- enlace
+            0,                       -- secuencia
+            NOW(),
+            'pdf',                   -- tipo_documento
+            FALSE,
+            0,
+            p_documento,              -- documento_ver
+            p_interno,
+            NOW(),
+            NOW(),
+            NOW(),
+            p_documento_descarga,
+            p_titulo,                -- nombre_documento
+            'application/pdf',
+            v_tenant_id
+        );
+
+        RETURN json_build_object(
+            'success', TRUE,
+            'message', 'Documento insertado correctamente.'
+        );
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Error: %', SQLERRM;
+            RETURN json_build_object(
+                'success', FALSE,
+                'message', CONCAT('Error al insertar documento: ', SQLERRM)
+            );
+    END;
+END;
+$$ LANGUAGE plpgsql;
