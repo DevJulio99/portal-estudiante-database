@@ -508,7 +508,8 @@ BEGIN
 
             -- Buscar horarios existentes (CORRECCIÓN: filtrar por codigo_sede)
             FOR v_horario IN
-                SELECT DISTINCT h.id_horario, h.nombre_dia, h.hora_inicio, h.hora_fin
+                SELECT DISTINCT h.id_horario, h.nombre_dia, h.hora_inicio, h.hora_fin, 
+				dsa.id_periodo, h.numero_dia, CASE WHEN dsa.id_periodo = p_id_periodo THEN 0 ELSE 1 END AS prioridad
                 FROM public.horario h
                 INNER JOIN public.detalleseccionasignada dsa ON h.id_horario = dsa.id_horario
                 INNER JOIN public.matricula_curso mc ON dsa.id_curso = mc.id_curso
@@ -525,7 +526,7 @@ BEGIN
                       LIMIT 3
                   ))
                 ORDER BY 
-                    CASE WHEN dsa.id_periodo = p_id_periodo THEN 0 ELSE 1 END,
+                    prioridad,
                     dsa.id_periodo DESC, 
                     h.numero_dia, 
                     h.hora_inicio
