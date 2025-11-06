@@ -1,4 +1,6 @@
 --actualizacion de funcion para traer notas
+DROP FUNCTION IF EXISTS public.obtener_notas_por_curso_subperiodo(integer, integer, character varying, character varying);
+
 CREATE OR REPLACE FUNCTION public.obtener_notas_por_curso_subperiodo(
     p_id_alumno integer,
     p_anio integer,
