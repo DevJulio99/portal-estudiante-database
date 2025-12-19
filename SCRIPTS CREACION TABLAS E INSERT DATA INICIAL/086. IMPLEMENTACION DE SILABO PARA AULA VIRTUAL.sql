@@ -63,17 +63,13 @@ CREATE TABLE tarea_detalle (
 INSERT INTO silabo (id_curso, id_periodo, nombre, descripcion)
 VALUES (1, 25, 'Matemáticas Básicas', 'Sílabo de Matemáticas Básicas');
 
-select * from silabo
 
 -- Unidad
 INSERT INTO silabo_unidad (id_silabo, numero_unidad, titulo, descripcion, orden, fecha_inicio, fecha_fin)
-VALUES (1, 1, 'Introduccion', '', 1, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024');
-INSERT INTO silabo_unidad (id_silabo, numero_unidad, titulo, descripcion, orden)
-VALUES (1, 1, 'Desarrollo de temas', '', 2, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024');
-INSERT INTO silabo_unidad (id_silabo, numero_unidad, titulo, descripcion, orden)
-VALUES (1, 1, 'Aplicaciones practicas', '', 3, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024');
-INSERT INTO silabo_unidad (id_silabo, numero_unidad, titulo, descripcion, orden)
-VALUES (1, 1, 'Evaluación final', '', 4, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024');
+VALUES (1, 1, 'Introduccion', '', 1, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024'),
+(1, 1, 'Desarrollo de temas', '', 2, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024'),
+(1, 1, 'Aplicaciones practicas', '', 3, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024'),
+(1, 1, 'Evaluación final', '', 4, '2025-12-16 17:16:32.069024', '2026-02-01 17:16:32.069024');
 
 -- Sesiones
 INSERT INTO sesion_clase (id_unidad, numero, fecha, titulo)
@@ -101,12 +97,10 @@ VALUES
 (1, 'Archivo', 'Infografía N° 1', 4),
 (2, 'Archivo', 'Diapositiva', 5),
 (2, 'Archivo', 'Grabación de sesión', 7);
-select  * from contenido_sesion
 
 -- Archivos tarea
 INSERT INTO tarea_detalle (id_contenido, fecha_apertura, fecha_cierre, puntaje_max)
 VALUES (12, '2026-01-01 08:00', '2026-01-20 23:59', 10);
-select  * from tarea_detalle
 
 --Archivos de material complementario
 INSERT INTO archivo_contenido (id_contenido, nombre, url, extension, peso_mb)
