@@ -358,3 +358,69 @@ EXCEPTION
         );
 END;
 $$;
+
+--funcion para obterner archivos
+CREATE OR REPLACE FUNCTION obtener_archivo_contenido(
+    p_id_contenido INT,
+    p_id_alumno INT
+)
+RETURNS JSON
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_tenant_id VARCHAR;
+    v_existe_alumno BOOLEAN;
+    v_resultado JSON;
+BEGIN
+
+    v_tenant_id := current_setting('app.current_tenant', true);
+
+    SELECT EXISTS (
+        SELECT 1
+        FROM alumno a
+        WHERE a.id_alumno = p_id_alumno
+          AND a.codigo_sede = v_tenant_id
+    )
+    INTO v_existe_alumno;
+
+    IF NOT v_existe_alumno THEN
+        RETURN json_build_object(
+            'success', false,
+            'message', 'El alumno no existe o no pertenece a la sede actual',
+            'data', NULL
+        );
+    END IF;
+
+    SELECT json_build_object(
+        'success', true,
+        'message', 'Archivo encontrado',
+        'data', COALESCE(
+            json_agg(
+                json_build_object(
+                    'id_archivo', ac.id_archivo,
+                    'id_contenido', ac.id_contenido,
+                    'nombre', ac.nombre,
+                    'url', ac.url,
+                    'extension', ac.extension
+                )
+            ),
+            '[]'::json
+        )
+    )
+    INTO v_resultado
+    FROM archivo_contenido ac
+    WHERE ac.id_contenido = p_id_contenido
+      AND ac.id_alumno = p_id_alumno;
+
+    IF json_array_length(v_resultado->'data') = 0 THEN
+        RETURN json_build_object(
+            'success', true,
+            'message', 'No se encontraron archivos para el contenido y alumno',
+            'data', '[]'::json
+        );
+    END IF;
+
+    RETURN v_resultado;
+
+END;
+$$;
